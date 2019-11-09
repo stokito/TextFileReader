@@ -91,7 +91,7 @@ public class TextFileStreamReader {
         }
     }
 
-    public static String inputFileGetString(RandomAccessStream inputFileStream, int strLength) {
+    public static String inputFileNextString(RandomAccessStream inputFileStream, int strLength) {
         long leftBytesInStream = inputFileStream.length() - inputFileStream.position() - 1;
         long bytesToRead = min(leftBytesInStream, strLength);
         String inputVariable = "";
@@ -104,7 +104,7 @@ public class TextFileStreamReader {
         return inputVariable;
     }
 
-    public static String inputFileGetLine(RandomAccessStream inputFileStream) {
+    public static String inputFileNextLine(RandomAccessStream inputFileStream) {
         String inputVariable = "";
         while (!inputFileIsEof(inputFileStream)) {
             char ch = inputFileReadChar(inputFileStream);
@@ -125,13 +125,13 @@ public class TextFileStreamReader {
         return ch == CR || ch == LF;
     }
 
-    public static char inputFileGetChar(RandomAccessStream inputFileStream) {
+    public static char inputFileNextChar(RandomAccessStream inputFileStream) {
         assert !inputFileIsEof(inputFileStream);
         char ch = inputFileReadChar(inputFileStream);
         return ch;
     }
 
-    public static int inputFileGetInt(RandomAccessStream inputFileStream) {
+    public static int inputFileNextInt(RandomAccessStream inputFileStream) {
         long startPos = inputFileStream.position();
         eatSpaces(inputFileStream);
         assert (!inputFileIsEof(inputFileStream));
@@ -156,7 +156,7 @@ public class TextFileStreamReader {
         return inputValue;
     }
 
-    public static double inputFileGetFloat(RandomAccessStream inputFileStream) {
+    public static double inputFileNextDouble(RandomAccessStream inputFileStream) {
         long startPos = inputFileStream.position();
         eatSpaces(inputFileStream);
         assert (!inputFileIsEof(inputFileStream));
@@ -213,7 +213,7 @@ public class TextFileStreamReader {
 
     public static void inputFileSkipSpaces(RandomAccessStream inputFileStream, int spacesCount) {
         for (int i = 1; i <= spacesCount; i++) {
-            char ch = inputFileGetChar(inputFileStream);
+            char ch = inputFileNextChar(inputFileStream);
             assert (ch == ' ' || ch == '\t');
         }
     }
