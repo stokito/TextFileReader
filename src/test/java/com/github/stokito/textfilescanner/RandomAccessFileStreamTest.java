@@ -1,4 +1,4 @@
-package com.github.stokito.textfile;
+package com.github.stokito.textfilescanner;
 
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +14,7 @@ class RandomAccessFileStreamTest {
         RandomAccessFileStream randomAccessFileStream = new RandomAccessFileStream("src/test/resources/inputdata.txt");
         assert !randomAccessFileStream.eof();
         assertEquals(0, randomAccessFileStream.position());
-        assertEquals(139, randomAccessFileStream.length());
+        assertEquals(142, randomAccessFileStream.length());
         randomAccessFileStream.seek(22);
         char lastCharInFirstLine = (char) randomAccessFileStream.read();
         assertEquals('e', lastCharInFirstLine);

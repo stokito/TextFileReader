@@ -1,4 +1,4 @@
-package com.github.stokito.textfile;
+package com.github.stokito.textfilescanner;
 
 import java.io.IOException;
 

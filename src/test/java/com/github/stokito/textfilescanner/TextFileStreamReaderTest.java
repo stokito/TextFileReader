@@ -1,8 +1,8 @@
-package com.github.stokito.textfile;
+package com.github.stokito.textfilescanner;
 
 import org.junit.jupiter.api.Test;
 
-import static com.github.stokito.textfile.TextFileStreamReader.*;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TextFileStreamReaderTest {

@@ -1,4 +1,4 @@
-# TextFile reader
+# TextFile reader and scanner
 
 Migrate from Pascal's TextFile to Streams. The main purpose of is to simplify migration from Delphi to C# and Java. 
 Also the parser can be used as is in Java and C#.
