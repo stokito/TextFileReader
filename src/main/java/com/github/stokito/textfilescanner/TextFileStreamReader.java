@@ -1,8 +1,10 @@
 package com.github.stokito.textfilescanner;
 
 import java.io.IOException;
+import java.util.Base64;
 
 import static java.lang.Math.min;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class TextFileStreamReader {
     public static final char CR = '\r';
@@ -69,9 +71,21 @@ public class TextFileStreamReader {
         }
     }
 
-    public static RandomAccessStream inputFileOpen(String inputFilePath) {
-        RandomAccessFileStream inputFileStream = new RandomAccessFileStream(inputFilePath);
-        return inputFileStream;
+    public static RandomAccessStream inputFileOpen(String inputFileUri) {
+        if (inputFileUri == null) {
+            return null;
+        }
+        if (inputFileUri.startsWith("data:")) {
+            // skip "data:application/octet-stream;base64,"
+            int contentStartPos = inputFileUri.indexOf(',');
+            if (contentStartPos == -1) {
+                throw new RuntimeException("Unable to parse data URU");
+            }
+            String contentBase64 = inputFileUri.substring(contentStartPos + 1);
+            String content = new String(Base64.getDecoder().decode(contentBase64), UTF_8);
+            return new RandomAccessStringStream(content);
+        }
+        return new RandomAccessFileStream(inputFileUri);
     }
 
     public static RandomAccessStream inputFileFromString(String inputFileContent) {
