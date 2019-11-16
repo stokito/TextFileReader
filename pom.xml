@@ -6,7 +6,7 @@
 
     <groupId>com.stokito</groupId>
     <artifactId>textfilescanner</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <description>Pascal like TextFile Stream Reader</description>
     <dependencies>
         <dependency>
