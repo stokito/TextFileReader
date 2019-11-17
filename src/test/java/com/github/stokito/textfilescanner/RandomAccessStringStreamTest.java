@@ -11,6 +11,8 @@ class RandomAccessStringStreamTest {
     void eof() {
         assert !stringStream.eof();
         stringStream.seek(9);
+        assert !stringStream.eof();
+        stringStream.seek(10);
         assert stringStream.eof();
     }
 
@@ -31,7 +33,7 @@ class RandomAccessStringStreamTest {
     void read() {
         for (int i = 0; i < 10; i++) {
             int b = stringStream.read();
-            assert Character.forDigit(i, 10) == (char) b;
+            assertEquals(Character.forDigit(i, 10), (char) b);
         }
     }
 }

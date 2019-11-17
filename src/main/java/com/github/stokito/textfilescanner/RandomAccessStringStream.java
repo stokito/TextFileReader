@@ -1,9 +1,12 @@
 package com.github.stokito.textfilescanner;
 
+import static java.lang.Math.min;
+
 public class RandomAccessStringStream extends RandomAccessStream {
 
     private String content;
     private int position;
+    private boolean eofReached;
 
     public RandomAccessStringStream(String content) {
         this.content = content;
@@ -11,7 +14,12 @@ public class RandomAccessStringStream extends RandomAccessStream {
 
     @Override
     public int read() {
-        return content.charAt(position++);
+        if (eof()) {
+            return -1;
+        }
+        char c = content.charAt(position);
+        shiftPosition(position + 1);
+        return c;
     }
 
     @Override
@@ -26,7 +34,7 @@ public class RandomAccessStringStream extends RandomAccessStream {
 
     @Override
     public void seek(long position) {
-        this.position = (int) position;
+        shiftPosition(min(position, length() - 1));
     }
 
     @Override
@@ -37,7 +45,7 @@ public class RandomAccessStringStream extends RandomAccessStream {
 
     @Override
     public boolean eof() {
-        return position() == content.length() - 1;
+        return eofReached;
     }
 
     @Override
@@ -45,4 +53,10 @@ public class RandomAccessStringStream extends RandomAccessStream {
         content = null;
     }
 
+    private void shiftPosition(long newPos) {
+        eofReached = position + 1 == length();
+        if (!eofReached) {
+            position = (int) newPos;
+        }
+    }
 }

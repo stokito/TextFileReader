@@ -9,7 +9,7 @@ class TextFileStreamReaderTest {
 
     @Test
     void testTextFileStreamReader() {
-        RandomAccessStream stream = inputFileOpen("src/test/resources/inputdata.txt");
+        RandomAccessStream stream = inputFileOpen("file://src/test/resources/inputdata.txt");
         assertEquals('i', inputFileNextChar(stream));
         inputFileSeekBack(stream);
         assertEquals('i', inputFileNextChar(stream));
@@ -34,25 +34,41 @@ class TextFileStreamReaderTest {
 
     @Test
     void testLinesCount() {
-        int linesCount = linesCount("src/test/resources/inputdata.txt");
+        int linesCount = linesCount("file://src/test/resources/inputdata.txt");
         assertEquals(9, linesCount);
+    }
+
+    @Test
+    void testInputFileNextLine() {
+        RandomAccessStringStream inputStream = new RandomAccessStringStream("line");
+        String line = inputFileNextLine(inputStream);
+        assertEquals("line", line);
     }
 
     @Test
     void testInputFileOpenFromDataUri() {
         RandomAccessStream randomAccess = inputFileOpen("data:application/octet-stream;base64,MTM4NDcgICAgMjYzMzYgICAgMTkyNjgNCg==");
         assert randomAccess instanceof RandomAccessStringStream;
-        RandomAccessStringStream stringStream = (RandomAccessStringStream) randomAccess;
-        String line = TextFileStreamReader.inputFileNextLine(stringStream);
+        RandomAccessStringStream inputStream = (RandomAccessStringStream) randomAccess;
+        String line = inputFileNextLine(inputStream);
         assertEquals("13847    26336    19268", line);
     }
 
     @Test
     void testInputFileOpenFromFile() {
-        RandomAccessStream randomAccess = inputFileOpen("src/test/resources/inputdata.txt");
+        RandomAccessStream randomAccess = inputFileOpen("file://src/test/resources/inputdata.txt");
         assert randomAccess instanceof RandomAccessFileStream;
-        RandomAccessFileStream stringStream = (RandomAccessFileStream) randomAccess;
-        String line = TextFileStreamReader.inputFileNextLine(stringStream);
+        RandomAccessFileStream inputStream = (RandomAccessFileStream) randomAccess;
+        String line = inputFileNextLine(inputStream);
         assertEquals("input text file example", line);
+    }
+
+    @Test
+    void testInputFileOpenFromString() {
+        RandomAccessStream randomAccess = inputFileOpen("13847    26336    19268");
+        assert randomAccess instanceof RandomAccessStringStream;
+        RandomAccessStringStream inputStream = (RandomAccessStringStream) randomAccess;
+        String line = inputFileNextLine(inputStream);
+        assertEquals("13847    26336    19268", line);
     }
 }

@@ -9,6 +9,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class TextFileStreamReader {
     public static final char CR = '\r';
     public static final char LF = '\n';
+    public static final boolean allowedDataUri = true;
+    public static final boolean allowedFileUri = true;
+    public static final boolean allowedStringUri = true;
 
     public static void inputFileSeekBack(RandomAccessStream inputFileStream) {
         inputFileStream.seek(inputFileStream.position() - 1);
@@ -76,16 +79,29 @@ public class TextFileStreamReader {
             return null;
         }
         if (inputFileUri.startsWith("data:")) {
+            if (!allowedDataUri) {
+                throw new RuntimeException("data URI protocol is not allowed");
+            }
             // skip "data:application/octet-stream;base64,"
             int contentStartPos = inputFileUri.indexOf(',');
             if (contentStartPos == -1) {
-                throw new RuntimeException("Unable to parse data URU");
+                throw new RuntimeException("Unable to parse data URI");
             }
             String contentBase64 = inputFileUri.substring(contentStartPos + 1);
             String content = new String(Base64.getDecoder().decode(contentBase64), UTF_8);
             return new RandomAccessStringStream(content);
+        } else if (inputFileUri.startsWith("file://")) {
+            if (!allowedFileUri) {
+                throw new RuntimeException("data URI protocol is not allowed");
+            }
+            String filePath = inputFileUri.substring("file://".length());
+            return new RandomAccessFileStream(filePath);
+        } else {
+            if (!allowedStringUri) {
+                throw new RuntimeException("data URI protocol is not allowed");
+            }
+            return new RandomAccessStringStream(inputFileUri);
         }
-        return new RandomAccessFileStream(inputFileUri);
     }
 
     public static RandomAccessStream inputFileFromString(String inputFileContent) {
@@ -196,7 +212,7 @@ public class TextFileStreamReader {
     }
 
     public static boolean inputFileIsEof(RandomAccessStream inputFileStream) {
-        return inputFileStream.length() == inputFileStream.position() + 1;
+        return inputFileStream.eof();
     }
 
     public static void inputFileSkipLn(RandomAccessStream inputFileStream) {
