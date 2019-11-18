@@ -10,10 +10,13 @@ class TextFileStreamReaderTest {
     @Test
     void testTextFileStreamReader() {
         RandomAccessStream stream = inputFileOpen("file://src/test/resources/inputdata.txt");
-        assertEquals('i', inputFileNextChar(stream));
+        assertEquals('i', inputFileNextChar(stream)); // the "i" from "input"
         inputFileSeekBack(stream);
-        assertEquals('i', inputFileNextChar(stream));
+        assertEquals('i', inputFileNextChar(stream)); // again i from input
         assert inputFileHasLines(stream);
+        assertEquals("nput", inputFileNextWord(stream));
+        assertEquals("text", inputFileNextWord(stream));
+        assertEquals('f', inputFileNextSymbol(stream)); // f from " file"
         inputFileSkipLn(stream);
         assertEquals("Line ", inputFileNextLine(stream));
         assertEquals("Integer", inputFileNextString(stream, 7));

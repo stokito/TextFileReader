@@ -3,6 +3,8 @@ package com.github.stokito.textfilescanner;
 import java.io.IOException;
 import java.util.Base64;
 
+import static java.lang.Character.isDigit;
+import static java.lang.Character.isWhitespace;
 import static java.lang.Math.min;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -50,7 +52,7 @@ public class TextFileStreamReader {
     public static void eatSpaces(RandomAccessStream inputFileStream) {
         while (!inputFileIsEof(inputFileStream)) {
             char ch = inputFileReadChar(inputFileStream);
-            if (ch != ' ' && ch != '\t') {
+            if (!isWhitespace(ch)) {
                 inputFileSeekBack(inputFileStream);
                 return;
             }
@@ -121,6 +123,23 @@ public class TextFileStreamReader {
         }
     }
 
+    public static String inputFileNextWord(RandomAccessStream inputFileStream) {
+        long startPos = inputFileStream.position();
+        eatSpaces(inputFileStream);
+        assert (!inputFileIsEof(inputFileStream));
+
+        String inputVariable = "";
+        while (!inputFileIsEoln(inputFileStream)) {
+            char ch = inputFileReadChar(inputFileStream);
+            if (isWhitespace(ch)) {
+                inputFileSeekBack(inputFileStream);
+                break;
+            }
+            inputVariable = inputVariable + ch;
+        }
+        return inputVariable;
+    }
+
     public static String inputFileNextString(RandomAccessStream inputFileStream, int strLength) {
         long leftBytesInStream = inputFileStream.length() - inputFileStream.position() - 1;
         long bytesToRead = min(leftBytesInStream, strLength);
@@ -161,6 +180,14 @@ public class TextFileStreamReader {
         return ch;
     }
 
+    public static char inputFileNextSymbol(RandomAccessStream inputFileStream) {
+        long startPos = inputFileStream.position();
+        eatSpaces(inputFileStream);
+        assert (!inputFileIsEof(inputFileStream));
+        char ch = inputFileReadChar(inputFileStream);
+        return ch;
+    }
+
     public static int inputFileNextInt(RandomAccessStream inputFileStream) {
         long startPos = inputFileStream.position();
         eatSpaces(inputFileStream);
@@ -171,7 +198,7 @@ public class TextFileStreamReader {
             char ch = inputFileReadChar(inputFileStream);
             if (readedBytes == 1 && (ch == '-' || ch == '+')) {
                 inputValueStr = inputValueStr + ch;
-            } else if (ch >= '0' && ch <= '9') {
+            } else if (isDigit(ch)) {
                 inputValueStr = inputValueStr + ch;
             } else {
                 inputFileSeekBack(inputFileStream);
@@ -230,7 +257,7 @@ public class TextFileStreamReader {
         long currentPos = inputFileStream.position();
         while (!inputFileIsEof(inputFileStream)) {
             char ch = inputFileReadChar(inputFileStream);
-            if (ch != CR && ch != LF && ch != ' ' && ch != '\t') {
+            if (ch != CR && ch != LF && !isWhitespace(ch)) {
                 inputFileStream.seek(currentPos);
                 fileHasSomeNonEmptyLines = true;
                 return fileHasSomeNonEmptyLines;
@@ -244,7 +271,7 @@ public class TextFileStreamReader {
     public static void inputFileSkipSpaces(RandomAccessStream inputFileStream, int spacesCount) {
         for (int i = 1; i <= spacesCount; i++) {
             char ch = inputFileNextChar(inputFileStream);
-            assert (ch == ' ' || ch == '\t');
+            assert isWhitespace(ch);
         }
     }
 }
