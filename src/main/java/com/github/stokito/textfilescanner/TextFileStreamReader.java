@@ -249,10 +249,15 @@ public class TextFileStreamReader {
     }
 
     public static void inputFileSkipLn(RandomAccessStream inputFileStream) {
-        while (!inputFileIsEof(inputFileStream)) {
+        inputFileSkipLn(inputFileStream,1);
+    }
+
+    public static void inputFileSkipLn(RandomAccessStream inputFileStream, int linesToSkip) {
+        int skippedLines = 0;
+        while (!inputFileIsEof(inputFileStream) && skippedLines < linesToSkip) {
             char ch = inputFileReadChar(inputFileStream);
             if (eatEoln(inputFileStream, ch)) {
-                return;
+                skippedLines++;
             }
         }
     }

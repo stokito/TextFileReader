@@ -7,9 +7,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TextFileStreamReaderTest {
 
+    public static final String INPUT_FILE_CONTENT = "input text file example\n" +
+            "Line \n" +
+            "Integer 42 -2147483648 2147483647\n" +
+            "  1\t2\n" +
+            "    0.25 0.25;\n" +
+            "\t1.7976931348623157 -2.2250738585072014\n" +
+            "Line1\n" +
+            "Line2\n" +
+            "Line3\n" +
+            "Line4\n" +
+            "    \n" +
+            "\t\n" +
+            "\r" +
+            "\r\n" +
+            "\n";
+
     @Test
     void testTextFileStreamReader() {
-        RandomAccessStream stream = inputFileOpen("file://src/test/resources/inputdata.txt");
+        RandomAccessStream stream = inputFileOpen(INPUT_FILE_CONTENT);
         assertEquals('i', inputFileNextChar(stream)); // the "i" from "input"
         inputFileSeekBack(stream);
         assertEquals('i', inputFileNextChar(stream)); // again i from input
@@ -34,6 +50,8 @@ class TextFileStreamReaderTest {
         inputFileSkipLn(stream);
         assertEquals(1.7976931348623157, inputFileNextDouble(stream)); // "\t1.7976931348623157"
         assertEquals(-2.2250738585072014, inputFileNextDouble(stream)); // "\t-2.2250738585072014"
+        inputFileSkipLn(stream);
+        inputFileSkipLn(stream, 4);
         assert !inputFileHasLines(stream);
     }
 
