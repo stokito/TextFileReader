@@ -50,7 +50,9 @@ public class RandomAccessStringStream extends RandomAccessStream {
 
     @Override
     public void close() {
+        position = 0;
         content = null;
+        eofReached = false;
     }
 
     private void shiftPosition(long newPos) {
