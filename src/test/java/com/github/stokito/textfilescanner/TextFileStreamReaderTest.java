@@ -21,6 +21,8 @@ class TextFileStreamReaderTest {
         assertEquals("Line ", inputFileNextLine(stream));
         assertEquals("Integer", inputFileNextString(stream, 7));
         assertEquals(42, inputFileNextInt(stream));
+        inputFileSeekBack(stream);
+        assertEquals(2, inputFileNextDigit(stream));
         assertEquals(Integer.MIN_VALUE, inputFileNextInt(stream)); // -2147483648
         assertEquals(Integer.MAX_VALUE, inputFileNextInt(stream)); // 2147483647
         inputFileSkipLn(stream);

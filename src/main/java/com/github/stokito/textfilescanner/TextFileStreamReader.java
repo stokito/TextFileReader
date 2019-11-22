@@ -188,6 +188,12 @@ public class TextFileStreamReader {
         return ch;
     }
 
+    public static int inputFileNextDigit(RandomAccessStream inputFileStream) {
+        assert !inputFileIsEof(inputFileStream);
+        char ch = inputFileReadChar(inputFileStream);
+        return Character.digit(ch, 10);
+    }
+
     public static int inputFileNextInt(RandomAccessStream inputFileStream) {
         long startPos = inputFileStream.position();
         eatSpaces(inputFileStream);
