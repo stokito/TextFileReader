@@ -94,4 +94,11 @@ class TextFileStreamReaderTest {
         String line = inputFileNextLine(inputStream);
         assertEquals("13847    26336    19268", line);
     }
+
+    @Test
+    void testInputFileNextInt() {
+        RandomAccessStream randomAccess = inputFileOpen(" 40");
+        int num = inputFileNextInt(randomAccess);
+        assertEquals(40, num);
+    }
 }

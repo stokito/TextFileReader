@@ -11,35 +11,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RandomAccessFileStreamTest {
 
+    private final RandomAccessFileStream randomAccessStream = new RandomAccessFileStream("src/test/resources/inputdata.txt");
+
     @Test
     void testInputFileNextLine() {
-        RandomAccessFileStream randomAccessFileStream = new RandomAccessFileStream("src/test/resources/inputdata.txt");
         for (int readedBytes = 1; readedBytes <= 141; readedBytes++) {
-            int readByte = randomAccessFileStream.read();
+            int readByte = randomAccessStream.read();
             assertNotEquals(-1, readByte, "readedBytes: " + readedBytes);
-            assertFalse(randomAccessFileStream.eof(), "readedBytes: " + readedBytes);
+            assertFalse(randomAccessStream.eof(), "readedBytes: " + readedBytes);
         }
-        int readByte = randomAccessFileStream.read();
+        int readByte = randomAccessStream.read();
         assertNotEquals(-1, readByte, "last byte");
-        assert randomAccessFileStream.eof() : "last byte";
+        assert randomAccessStream.eof() : "last byte";
     }
 
     @Test
     void eof() throws FileNotFoundException {
-        RandomAccessFileStream randomAccessFileStream = new RandomAccessFileStream("src/test/resources/inputdata.txt");
-        assert !randomAccessFileStream.eof();
-        assertEquals(0, randomAccessFileStream.position());
-        assertEquals(142, randomAccessFileStream.length());
-        randomAccessFileStream.seek(22);
-        char lastCharInFirstLine = (char) randomAccessFileStream.read();
-        assertEquals('e', lastCharInFirstLine);
+        assert !randomAccessStream.eof();
+        assertEquals(0, randomAccessStream.position());
+        assertEquals(142, randomAccessStream.length());
+        randomAccessStream.seek(141);
+        char lastCharInFirstLine = (char) randomAccessStream.read();
+        assertEquals('\n', lastCharInFirstLine);
+        assert randomAccessStream.eof();
+        randomAccessStream.seek(141);
+        assert !randomAccessStream.eof();
     }
 
     @Test
     void seek() throws FileNotFoundException {
-        RandomAccessFileStream randomAccessFileStream = new RandomAccessFileStream("src/test/resources/inputdata.txt");
-        assert !randomAccessFileStream.eof();
-        assertEquals(142, randomAccessFileStream.length());
-        randomAccessFileStream.seek(144);
+        assert !randomAccessStream.eof();
+        assertEquals(142, randomAccessStream.length());
+        randomAccessStream.seek(144);
+        assertEquals(142, randomAccessStream.position());
+        assert randomAccessStream.eof();
     }
 }

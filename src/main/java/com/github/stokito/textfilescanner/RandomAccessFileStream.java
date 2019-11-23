@@ -3,6 +3,8 @@ package com.github.stokito.textfilescanner;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import static java.lang.Long.min;
+
 public class RandomAccessFileStream extends RandomAccessStream {
 
     private RandomAccessFile file;
@@ -45,7 +47,7 @@ public class RandomAccessFileStream extends RandomAccessStream {
     @Override
     public void seek(long position) {
         try {
-            file.seek(position);
+            file.seek(min(position, length()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

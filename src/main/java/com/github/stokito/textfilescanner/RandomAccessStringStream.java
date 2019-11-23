@@ -18,7 +18,7 @@ public class RandomAccessStringStream extends RandomAccessStream {
             return -1;
         }
         char c = content.charAt(position);
-        shiftPosition(position + 1);
+        seek(position + 1);
         return c;
     }
 
@@ -34,7 +34,8 @@ public class RandomAccessStringStream extends RandomAccessStream {
 
     @Override
     public void seek(long position) {
-        shiftPosition(min(position, length() - 1));
+        this.position = (int) min(position, length());
+        eofReached = this.position == length();
     }
 
     @Override
@@ -55,10 +56,4 @@ public class RandomAccessStringStream extends RandomAccessStream {
         eofReached = false;
     }
 
-    private void shiftPosition(long newPos) {
-        eofReached = position + 1 == length();
-        if (!eofReached) {
-            position = (int) newPos;
-        }
-    }
 }
