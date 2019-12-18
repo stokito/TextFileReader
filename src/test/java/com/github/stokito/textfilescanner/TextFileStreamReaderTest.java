@@ -2,8 +2,28 @@ package com.github.stokito.textfilescanner;
 
 import org.junit.jupiter.api.Test;
 
-import static com.github.stokito.textfilescanner.TextFileStreamReader.*;
-import static org.junit.jupiter.api.Assertions.*;
+import java.math.RoundingMode;
+
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileHasLines;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileHasNextInt;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileLinesCount;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextChar;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextDigit;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextDouble;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextEnum;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextInt;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextIntIfExists;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextLine;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextString;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextSymbol;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileNextWord;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileOpen;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileSeekBack;
+import static com.github.stokito.textfilescanner.TextFileStreamReader.inputFileSkipLn;
+import static java.math.RoundingMode.CEILING;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class TextFileStreamReaderTest {
 
@@ -57,7 +77,7 @@ class TextFileStreamReaderTest {
 
     @Test
     void testLinesCount() {
-        int linesCount = linesCount("file://src/test/resources/inputdata.txt");
+        int linesCount = inputFileLinesCount("file://src/test/resources/inputdata.txt");
         assertEquals(9, linesCount);
     }
 
@@ -100,5 +120,77 @@ class TextFileStreamReaderTest {
         RandomAccessStream randomAccess = inputFileOpen(" 40");
         int num = inputFileNextInt(randomAccess);
         assertEquals(40, num);
+        randomAccess = inputFileOpen(" 2147483647"); // Integer.MAX_VALUE 2147483647
+        num = inputFileNextInt(randomAccess);
+        assertEquals(Integer.MAX_VALUE, num);
+        randomAccess = inputFileOpen(" -2147483648"); // Integer.MIN_VALUE -2147483648
+        num = inputFileNextInt(randomAccess);
+        assertEquals(Integer.MIN_VALUE, num);
+        randomAccess = inputFileOpen(" -1.25"); // float number
+        num = inputFileNextInt(randomAccess);
+        assertEquals(-1, num);
+    }
+
+    @Test
+    void testInputFileNextIntIfExists() {
+        RandomAccessStream randomAccess = inputFileOpen(" 42 lol");
+        Integer num = inputFileNextIntIfExists(randomAccess, false);
+        assertEquals(42, num);
+        assertEquals(true, inputFileHasNextInt(randomAccess));
+        num = inputFileNextIntIfExists(randomAccess, false);
+        assertEquals(null, num);
+        try {
+            inputFileNextIntIfExists(randomAccess, true);
+            fail();
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Test
+    void testInputFileNextDigit() {
+        RandomAccessStream randomAccess = inputFileOpen(" 12 3 $");
+        byte digit = inputFileNextDigit(randomAccess);
+        assertEquals(1, digit);
+        digit = inputFileNextDigit(randomAccess);
+        assertEquals(2, digit);
+        digit = inputFileNextDigit(randomAccess);
+        assertEquals(3, digit);
+        try {
+            digit = inputFileNextDigit(randomAccess);
+            fail();
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Test
+    void testInputFileNextSymbol() {
+        RandomAccessStream randomAccess = inputFileOpen(" 12 3 $");
+        char symbol = inputFileNextSymbol(randomAccess);
+        assertEquals('1', symbol);
+        symbol = inputFileNextSymbol(randomAccess);
+        assertEquals('2', symbol);
+        symbol = inputFileNextSymbol(randomAccess);
+        assertEquals('3', symbol);
+        symbol = inputFileNextSymbol(randomAccess);
+        assertEquals('$', symbol);
+    }
+
+    @Test
+    void testInputFileNextDouble() {
+        RandomAccessStream randomAccess = inputFileOpen(" 1.7976931348623157E308");
+        double num = inputFileNextDouble(randomAccess);
+        assertEquals(Double.MAX_VALUE, num);
+        randomAccess = inputFileOpen(" 4.9E-324");
+        num = inputFileNextDouble(randomAccess);
+        assertEquals(Double.MIN_VALUE, num);
+    }
+
+    @Test
+    void testInputFileNextEnum() {
+        RandomAccessStream randomAccess = inputFileOpen(" CEILING OLOLO");
+        RoundingMode roundingMode = inputFileNextEnum(randomAccess, RoundingMode.class);
+        assertEquals(CEILING, roundingMode);
+        roundingMode = inputFileNextEnum(randomAccess, RoundingMode.class);
+        assertNull(roundingMode);
     }
 }

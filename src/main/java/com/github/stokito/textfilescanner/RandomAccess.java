@@ -11,7 +11,7 @@ public interface RandomAccess {
 
     boolean eof();
 
-    /** @return the current position of byte the stream starting from zero so be careful with comparing with length */
+    /** @return the current position of byte the stream starting from zero so be careful when comparing it with length */
     long position();
 
     default int available() throws IOException {

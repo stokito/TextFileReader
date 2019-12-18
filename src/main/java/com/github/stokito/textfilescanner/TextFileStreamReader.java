@@ -3,17 +3,17 @@ package com.github.stokito.textfilescanner;
 import java.io.IOException;
 import java.util.Base64;
 
+import static java.lang.Character.digit;
 import static java.lang.Character.isDigit;
 import static java.lang.Character.isWhitespace;
-import static java.lang.Math.min;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class TextFileStreamReader {
     public static final char CR = '\r';
     public static final char LF = '\n';
-    public static final boolean allowedDataUri = true;
-    public static final boolean allowedFileUri = true;
-    public static final boolean allowedStringUri = true;
+    public static boolean allowedDataUri = true;
+    public static boolean allowedFileUri = true;
+    public static boolean allowedStringUri = true;
 
     public static void inputFileSeekBack(RandomAccessStream inputFileStream) {
         inputFileStream.seek(inputFileStream.position() - 1);
@@ -59,7 +59,7 @@ public class TextFileStreamReader {
         }
     }
 
-    public static int linesCount(String inputFilePath) {
+    public static int inputFileLinesCount(String inputFilePath) {
         RandomAccessStream inputFileStream = null;
         try {
             inputFileStream = inputFileOpen(inputFilePath);
@@ -126,7 +126,7 @@ public class TextFileStreamReader {
     public static String inputFileNextWord(RandomAccessStream inputFileStream) {
         long startPos = inputFileStream.position();
         eatSpaces(inputFileStream);
-        assert (!inputFileIsEof(inputFileStream));
+        assertEof(inputFileStream, startPos);
 
         String inputVariable = "";
         while (!inputFileIsEoln(inputFileStream)) {
@@ -135,19 +135,28 @@ public class TextFileStreamReader {
                 inputFileSeekBack(inputFileStream);
                 break;
             }
-            inputVariable = inputVariable + ch;
+            inputVariable += ch;
         }
         return inputVariable;
     }
 
+    public static <E extends Enum<E>> E inputFileNextEnum(RandomAccessStream inputFileStream, Class<E> enumClass) {
+        String enumName = inputFileNextWord(inputFileStream);
+        try {
+            return Enum.valueOf(enumClass, enumName);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
     public static String inputFileNextString(RandomAccessStream inputFileStream, int strLength) {
         long leftBytesInStream = inputFileStream.length() - inputFileStream.position() - 1;
-        long bytesToRead = min(leftBytesInStream, strLength);
+        assertCondition(leftBytesInStream > strLength);
         String inputVariable = "";
         long readedBytes = 0;
-        while (readedBytes < bytesToRead && !inputFileIsEoln(inputFileStream)) {
+        while (readedBytes < strLength && !inputFileIsEoln(inputFileStream)) {
             char ch = inputFileReadChar(inputFileStream);
-            inputVariable = inputVariable + ch;
+            inputVariable += ch;
             readedBytes++;
         }
         return inputVariable;
@@ -160,7 +169,7 @@ public class TextFileStreamReader {
             if (eatEoln(inputFileStream, ch)) {
                 break;
             }
-            inputVariable = inputVariable + ch;
+            inputVariable += ch;
         }
         return inputVariable;
     }
@@ -175,7 +184,7 @@ public class TextFileStreamReader {
     }
 
     public static char inputFileNextChar(RandomAccessStream inputFileStream) {
-        assert !inputFileIsEof(inputFileStream);
+        assertEof(inputFileStream, inputFileStream.position());
         char ch = inputFileReadChar(inputFileStream);
         return ch;
     }
@@ -183,65 +192,110 @@ public class TextFileStreamReader {
     public static char inputFileNextSymbol(RandomAccessStream inputFileStream) {
         long startPos = inputFileStream.position();
         eatSpaces(inputFileStream);
-        assert (!inputFileIsEof(inputFileStream));
+        assertEof(inputFileStream, startPos);
         char ch = inputFileReadChar(inputFileStream);
         return ch;
     }
 
-    public static int inputFileNextDigit(RandomAccessStream inputFileStream) {
-        assert !inputFileIsEof(inputFileStream);
-        char ch = inputFileReadChar(inputFileStream);
-        return Character.digit(ch, 10);
-    }
-
-    public static int inputFileNextInt(RandomAccessStream inputFileStream) {
+    public static byte inputFileNextDigit(RandomAccessStream inputFileStream) {
         long startPos = inputFileStream.position();
         eatSpaces(inputFileStream);
-        assert (!inputFileIsEof(inputFileStream));
-        String inputValueStr = "";
-        long beginPos = inputFileStream.position();
-        for (int readedBytes = 1; readedBytes <= 24; readedBytes++) {
-            char ch = inputFileReadChar(inputFileStream);
-            if (readedBytes == 1 && (ch == '-' || ch == '+')) {
-                inputValueStr = inputValueStr + ch;
-            } else if (isDigit(ch)) {
-                inputValueStr = inputValueStr + ch;
-            } else {
-                inputFileSeekBack(inputFileStream);
-                break;
-            }
-        }
-        if (inputValueStr.equals("")) {
-            throw new RuntimeException("Unable to parse int startPos: " + startPos + " beginPos: " + beginPos + " endPos: " + inputFileStream.position());
-        }
+        assertEof(inputFileStream, startPos);
+        char ch = inputFileReadChar(inputFileStream);
+        assertCondition(isDigit(ch));
+        return (byte) digit(ch, 10);
+    }
 
+    public static Integer inputFileNextIntIfExists(RandomAccessStream inputFileStream, boolean raiseException) {
+        long startPos = inputFileStream.position();
+        eatSpaces(inputFileStream);
+        assertEof(inputFileStream, startPos);
+        long beginPos = inputFileStream.position();
+        String inputValueStr = inputFileNextNumberStr(inputFileStream, false);
+        if (inputValueStr.equals("")) {
+            if (raiseException) {
+                throw new RuntimeException("Unable to parse int startPos: " + startPos + " beginPos: " + beginPos + " endPos: " + inputFileStream.position());
+            }
+            inputFileStream.seek(startPos);
+            return null;
+        }
         int inputValue = Integer.parseInt(inputValueStr);
         return inputValue;
     }
 
-    public static double inputFileNextDouble(RandomAccessStream inputFileStream) {
+    public static Double inputFileNextDoubleIfExists(RandomAccessStream inputFileStream, boolean raiseException) {
         long startPos = inputFileStream.position();
         eatSpaces(inputFileStream);
-        assert (!inputFileIsEof(inputFileStream));
-        String inputValueStr = "";
+        assertEof(inputFileStream, startPos);
         long beginPos = inputFileStream.position();
-        for (int readedBytes = 1; readedBytes <= 24; readedBytes++) {
+        String inputValueStr = inputFileNextNumberStr(inputFileStream, true);
+        if (inputValueStr.equals("")) {
+            if (raiseException) {
+                throw new RuntimeException("Unable to parse float startPos: " + startPos + " beginPos: " + beginPos + " endPos: " + inputFileStream.position());
+            }
+            inputFileStream.seek(startPos);
+            return null;
+        }
+        double inputValue = Double.parseDouble(inputValueStr);
+        assertCondition(Double.isFinite(inputValue));
+        return inputValue;
+    }
+
+    public static int inputFileNextInt(RandomAccessStream inputFileStream) {
+        return inputFileNextIntIfExists(inputFileStream, true);
+    }
+
+    public static double inputFileNextDouble(RandomAccessStream inputFileStream) {
+        return inputFileNextDoubleIfExists(inputFileStream, true);
+    }
+
+    public static Integer inputFileNextInt(RandomAccessStream inputFileStream, Integer defaultValue) {
+        Integer readValue = inputFileNextIntIfExists(inputFileStream, false);
+        if (readValue == null) {
+            readValue = defaultValue;
+        }
+        return readValue;
+    }
+
+    public static Double inputFileNextDouble(RandomAccessStream inputFileStream, Double defaultValue) {
+        Double readValue = inputFileNextDoubleIfExists(inputFileStream, false);
+        if (readValue == null) {
+            readValue = defaultValue;
+        }
+        return readValue;
+    }
+
+    public static boolean inputFileHasNextInt(RandomAccessStream inputFileStream) {
+        return inputFileNextIntIfExists(inputFileStream, false) == null;
+    }
+
+    public static boolean inputFileHasNextDouble(RandomAccessStream inputFileStream) {
+        return inputFileNextDoubleIfExists(inputFileStream, false) == null;
+    }
+
+    public static boolean inputFileHasNextNumber(RandomAccessStream inputFileStream, boolean floatComma) {
+        long startPos = inputFileStream.position();
+        eatSpaces(inputFileStream);
+        assertEof(inputFileStream, startPos);
+        String inputValueStr = inputFileNextNumberStr(inputFileStream, floatComma);
+        inputFileStream.seek(startPos);
+        return inputValueStr.equals("");
+    }
+
+    public static String inputFileNextNumberStr(RandomAccessStream inputFileStream, boolean floatComma) {
+        String inputValueStr = "";
+        while (!inputFileIsEoln(inputFileStream)) {
             char ch = inputFileReadChar(inputFileStream);
-            if (readedBytes == 1 && (ch == '-' || ch == '+')) {
-                inputValueStr = inputValueStr + ch;
-            } else if (ch >= '0' && ch <= '9' || ch == '.') {
-                inputValueStr = inputValueStr + ch;
+            if (ch == '-' || ch == '+' || isDigit(ch)) {
+                inputValueStr += ch;
+            } else if (floatComma && (ch == '.' || ch == 'E')) {
+                inputValueStr += ch;
             } else {
                 inputFileSeekBack(inputFileStream);
                 break;
             }
         }
-        if (inputValueStr.equals("")) {
-            throw new RuntimeException("Unable to parse float startPos: " + startPos + " beginPos: " + beginPos + " endPos: " + inputFileStream.position());
-        }
-
-        double inputValue = Double.parseDouble(inputValueStr);
-        return inputValue;
+        return inputValueStr;
     }
 
     public static boolean inputFileIsEof(RandomAccessStream inputFileStream) {
@@ -249,7 +303,7 @@ public class TextFileStreamReader {
     }
 
     public static void inputFileSkipLn(RandomAccessStream inputFileStream) {
-        inputFileSkipLn(inputFileStream,1);
+        inputFileSkipLn(inputFileStream, 1);
     }
 
     public static void inputFileSkipLn(RandomAccessStream inputFileStream, int linesToSkip) {
@@ -282,7 +336,21 @@ public class TextFileStreamReader {
     public static void inputFileSkipSpaces(RandomAccessStream inputFileStream, int spacesCount) {
         for (int i = 1; i <= spacesCount; i++) {
             char ch = inputFileNextChar(inputFileStream);
-            assert isWhitespace(ch);
+            assertCondition(isWhitespace(ch));
         }
+    }
+
+    private static void assertCondition(boolean condition, String message) {
+        if (!condition) {
+            throw new RuntimeException(message);
+        }
+    }
+
+    private static void assertCondition(boolean condition) {
+        assertCondition(condition, "Assertion failed");
+    }
+
+    private static void assertEof(RandomAccessStream inputFileStream, long startPos) {
+        assertCondition(!inputFileIsEof(inputFileStream), "Eof reached startPos: " + startPos);
     }
 }
