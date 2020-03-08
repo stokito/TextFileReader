@@ -1,18 +1,18 @@
 # TextFile reader and scanner
 
 Migrate from Pascal's TextFile to Streams. The main purpose of is to simplify migration from Delphi to C# and Java. 
-Also the parser can be used as is in Java and C#.
+The parser can be used as is in Java and C#.
 
 ## Parsing text files in Pascal and Delphi
 
 In Pascal and Delphi it is very widely used the [TextFile](https://wiki.freepascal.org/File_Handling_In_Pascal) to read human readable text files.
 
-For example you have a simple text file with rows and columns with numbers:
+For example, you have a simple text file with rows and columns with numbers:
 
        1.000 0.100
        2.000 0.200
 
-And here is some Delphi code to count a sum of all the numbers:
+here is some Delphi code to count a sum of all the numbers:
 
 ```pascal
 function calcSumInTextFile(inputFilePath: string): double;
@@ -124,7 +124,7 @@ Or the same but with shown spaces and `CR` and `LF` line ending:
 Then on the line 3, which is empty or to be more precise have only three spaces, 
 the program will try to read and parse it as float and it will fail with `EInOutError: Invalid inputs`.
 
-And here it comes the a nice function from the library `inputFileHasLines()`:
+Here it comes the nice function from the library `inputFileHasLines()`:
 
 ```pascal
   while inputFileHasLines(inputFile) do
